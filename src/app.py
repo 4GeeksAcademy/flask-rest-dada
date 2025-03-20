@@ -68,6 +68,8 @@ def new_user():
 
     return jsonify(new_user.serialize()), 201
 
+# gestion de favoritos
+
 
 @app.route('/favorites', methods=['GET'])
 def get_all_favorites():
@@ -80,12 +82,10 @@ def get_all_favorites():
     for fav in favorites:
         favorite_data = fav.serialize()
 
-        # Obtener información del usuario que añadió el favorito
         user = User.query.get(fav.user_id)
         favorite_data["user_name"] = user.first_name if user else None
         favorite_data["user_email"] = user.email if user else None
 
-        # Obtener nombres adicionales si existen
         if fav.planet_id:
             planet = Planet.query.get(fav.planet_id)
             favorite_data["planet_name"] = planet.planet_name if planet else None
@@ -146,14 +146,13 @@ def get_user_favorites(user_id):
 def add_favorite():
     data = request.get_json()
 
-    # Buscar el usuario por ID, nombre o email
     user_id = None
     if "user_id" in data:
         user_id = data["user_id"]
     elif "user_name" in data:
-        user = User.query.filter_by(first_name=data["user_name"]).first()
+        user = User.query.filter_by(first_name=data["first_name"]).first()
         if not user:
-            return jsonify({"error": f"El usuario '{data['user_name']}' no existe"}), 404
+            return jsonify({"error": f"El usuario '{data['first_name']}' no existe"}), 404
         user_id = user.id
     elif "user_email" in data:
         user = User.query.filter_by(email=data["user_email"]).first()
@@ -163,7 +162,6 @@ def add_favorite():
     else:
         return jsonify({"error": "Debe proporcionar user_id, user_name o user_email"}), 400
 
-    # Buscar los IDs de los elementos favoritos
     planet_id = None
     if "planet_name" in data:
         planet = Planet.query.filter_by(
@@ -186,7 +184,6 @@ def add_favorite():
             return jsonify({"error": f"El personaje '{data['character_name']}' no existe"}), 404
         character_id = character.id
 
-    # Validar que al menos un favorito sea válido
     if not any([planet_id, vehicle_id, character_id]):
         return jsonify({"error": "Debe proporcionar un nombre válido de planeta, vehículo o personaje"}), 400
 
@@ -208,18 +205,15 @@ def add_favorite():
 def delete_favorite():
     data = request.get_json()
 
-    # Verifica se il JSON è stato inviato
     if not data:
         return jsonify({"error": "Il corpo della richiesta è vuoto"}), 400
 
-    # Identificare l'utente usando first_name
     user = User.query.filter_by(first_name=data["first_name"]).first()
     if not user:
         return jsonify({"error": f"Utente '{data['first_name']}' non trovato"}), 404
 
-    user_id = user.id  # Otteniamo l'ID dell'utente
+    user_id = user.id
 
-    # Identificare il tipo di preferito da eliminare
     favorite = None
     if "planet_name" in data:
         planet = Planet.query.filter_by(
@@ -246,11 +240,9 @@ def delete_favorite():
     else:
         return jsonify({"error": "Devi specificare planet_name, vehicle_model o character_name"}), 400
 
-    # Se il preferito non è stato trovato
     if not favorite:
         return jsonify({"error": "Il preferito non esiste per questo utente"}), 404
 
-    # Eliminazione del preferito
     db.session.delete(favorite)
     db.session.commit()
 
@@ -279,7 +271,6 @@ def get_planet(id):
 def create_planet():
     data = request.get_json()
 
-    # Validación de datos
     if not data or "planet_name" not in data or "periodo_de_rotacion" not in data or "climate" not in data or "poblation" not in data:
         return jsonify({"error": "Faltan datos obligatorios"}), 400
 
@@ -346,7 +337,6 @@ def gate_all_vehicles():
 def create_vehicle():
     data = request.get_json()
 
-    # Validación de datos
     if not data or "model" not in data or "speed" not in data or "pilot" not in data or "length" not in data:
         return jsonify({"error": "Faltan datos obligatorios"}), 400
 
