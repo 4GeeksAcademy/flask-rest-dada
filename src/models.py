@@ -13,6 +13,8 @@ class User(db.Model):
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
 
+    favorites = relationship('Favorite', backref="user")
+
     def serialize(self):
         return {
             "id": self.id,
@@ -54,7 +56,7 @@ class People(db.Model):
     hair_color = Column(String(100), nullable=False)
     birth_year = Column(Integer, nullable=False)
 
-    favorites = relationship('Favorite', backref="people")
+    favorites = relationship('Favorite', backref="character")
 
     def serialize(self):
         return {
@@ -74,9 +76,9 @@ class Vehicle(db.Model):
     model = Column(String(100), nullable=False)
     speed = Column(Integer, nullable=False)
     pilot = Column(String(100), nullable=False)
-    lenght = Column(Integer, nullable=False)
+    length = Column(Integer, nullable=False)
 
-    favorites = relationship('Favorite', backref="vehicles")
+    favorites = relationship('Favorite', backref="vehicle")
 
     def serialize(self):
         return {
@@ -84,7 +86,7 @@ class Vehicle(db.Model):
             "model": self.model,
             "speed": self.speed,
             "pilot": self.pilot,
-            "lenght": self.lenght,
+            "length": self.length
         }
 
 
@@ -92,10 +94,10 @@ class Favorite(db.Model):
     __tablename__ = 'favorite'
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    planet_id = Column(Integer, ForeignKey('planet.id'))
-    vehicles_id = Column(Integer, ForeignKey('vehicle.id'))
-    characters_id = Column(Integer, ForeignKey('people.id'))
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    planet_id = Column(Integer, ForeignKey('planet.id'), nullable=True)
+    vehicles_id = Column(Integer, ForeignKey('vehicle.id'), nullable=True)
+    characters_id = Column(Integer, ForeignKey('people.id'), nullable=True)
 
     def serialize(self):
         return {
